@@ -169,3 +169,5 @@ def test_locator_all_checkbox(page):
     checkboxes = page.locator("input")
     for checkbox in checkboxes.all():
         checkbox.check()
+
+#Добавить элементы
