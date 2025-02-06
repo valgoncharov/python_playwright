@@ -1,5 +1,7 @@
+import os
 import pytest
 from playwright.sync_api import Playwright
+from playwright.sync_api import Page
 
 
 def test_add_todo(playwright: Playwright) -> None:
@@ -179,3 +181,145 @@ def test_checkbox(page):
     page.locator("text=Default radio").check()
     page.locator("text=Default checked radio").check()
     page.locator("text=Checked switch checkbox input").check()
+
+
+#Чек боксы и переключатели - использование клик
+def test_checkbox_use_click(page):
+    page.goto('https://zimaev.github.io/checks-radios/')
+    page.locator("text=Default checkbox").click()
+    page.locator("text=Checked checkbox").click()
+    page.locator("text=Default radio").click()
+    page.locator("text=Default checked radio").click()
+    page.locator("text=Checked switch checkbox input").click()
+
+
+#Выпадающий список использование select_option()
+def test_select(page):
+    page.goto('https://zimaev.github.io/select/')
+    page.select_option('#floatingSelect', value="3")
+    page.select_option('#floatingSelect', index=1)
+    page.select_option('#floatingSelect', label="Нашел и завел bug")
+
+
+#По умолчанию используется поиск по value. Вы можете использовать синтаксис, без явного указания стратегии поиска
+def test_select_without_vlue(page):
+    page.goto('https://zimaev.github.io/select/')
+    page.select_option('#floatingSelect', "3")
+    page.select_option('#floatingSelect', index=1)
+    page.select_option('#floatingSelect', label="Нашел и завел bug")
+
+
+#Если в вашем приложении реализован множественный выбор в выпадающем списке, то для реализации данного сценария необходимо передать массив опций, который требуется выбрать.
+def test_select_multiple(page):
+    page.goto('https://zimaev.github.io/select/')
+    page.select_option('#skills', value=["playwright", "python"])
+
+
+#Drag and Drop
+def test_drag_and_drop(page):
+    page.goto('https://zimaev.github.io/draganddrop/')
+    page.drag_and_drop("#drag", "#drop")
+
+
+#Диалоговые окна
+def test_dialogs(page: Page):
+    page.goto("https://zimaev.github.io/dialog/")
+    page.get_by_text("Диалог Alert").click()
+    page.get_by_text("Диалог Confirmation").click()
+    page.get_by_text("Диалог Prompt").click()
+
+
+#Cценарий в котором необходимо нажать кнопку "OK"
+def test_dialogs_scenario_ok(page: Page):
+    page.goto("https://zimaev.github.io/dialog/")
+    page.on("dialog", lambda dialog: dialog.accept())
+    page.get_by_text("Диалог Confirmation").click()
+
+
+# чтобы получить сообщение отображаемое в диалоговом окне.
+# добавить print() в lambda и самое главное не ставить () после dialog.message
+def test_dialogs_scenario_ok1(playwright: Playwright):
+    browser = playwright.chromium.launch(headless=False)
+    page = browser.new_page()
+    page.goto("https://zimaev.github.io/dialog/")
+    page.on("dialog", lambda dialog: dialog.accept())
+    print('\n')
+    page.on("dialog", lambda dialog: print(dialog.message))
+    page.get_by_role("button", name="Диалог Confirmation").click()
+
+
+#Загрузка файла
+def test_upload_file(page):
+    page.goto('https://zimaev.github.io/upload/')
+    page.set_input_files("#formFile", "hello.txt")
+    page.locator("#file-submit").click()
+
+
+#Вы можете зарегистрировать обработчик события "filechooser" и получить тот-же результат.
+def test_upload_file_lambda(page):
+    page.goto('https://zimaev.github.io/upload/')
+    page.on("filechooser", lambda file_chooser: file_chooser.set_files("hello.txt"))
+    page.locator("#formFile").click()
+
+
+#Другой вариант записи теста
+def test_upload_file_use_set(page):
+    page.goto('https://zimaev.github.io/upload/')
+    with page.expect_file_chooser() as fc_info:
+        page.locator("#formFile").click()
+    file_chooser = fc_info.value
+    file_chooser.set_files("hello.txt")
+
+
+#Скачать файл с оригиналом имени файли
+def test_download(page):
+
+    page.goto("https://demoqa.com/upload-download", wait_until='commit')
+
+    with page.expect_download() as download_info:
+        page.locator("a:has-text(\"Download\")").click()
+
+    download = download_info.value
+    file_name = download.suggested_filename
+    destination_folder_path = "./data/"
+    download.save_as(os.path.join(destination_folder_path, file_name))
+
+
+#Скачать файл с присвоением своего имени файла
+def test_download_with_name(page):
+
+    page.goto("https://demoqa.com/upload-download", wait_until='commit')
+
+    with page.expect_download() as download_info:
+        page.locator("a:has-text(\"Download\")").click()
+
+    download = download_info.value
+    destination_folder_path = "./data/"
+    download.save_as(os.path.join(destination_folder_path, "foto1.jpeg"))
+
+
+#Получение значений элемента innerText умеет считывать стили и не возвращает содержимое скрытых элементов, тогда как textContent этого не делает.
+def test_get_data_use_inner_text(page):
+    page.goto('https://zimaev.github.io/table/')
+    row = page.locator("tr")
+    print('\n')
+    print(row.all_inner_texts())
+
+
+#Получение значений элемента textContent получает содержимое всех элементов, включая <script> и <style>, тогда как innerText этого не делает.
+def test_get_data_use_text_content(page):
+    page.goto('https://zimaev.github.io/table/')
+    row = page.locator("tr")
+    print('\n')
+    print(row.all_text_contents())
+
+
+#Получение значений элемента: можно получить HTML-код элемента.
+def test_get_data_use_html(page):
+    page.goto('https://zimaev.github.io/table/')
+    row = page.locator('div.container')
+    print('\n')
+    print(row.inner_html())
+
+
+#Создание скриншотов
