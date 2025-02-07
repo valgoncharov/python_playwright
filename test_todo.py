@@ -72,7 +72,7 @@ def test_use_press_login(page):
     page.locator("#exampleInputEmail1").press_sequentially("world", delay=100)
 
 
-#Локатор or
+#Локатор or ???
 def test_or(page):
     selector = page.locator("input").or_(page.locator("text"))
     selector.fill("Hello Stepik")
@@ -323,3 +323,24 @@ def test_get_data_use_html(page):
 
 
 #Создание скриншотов
+def test_get_screenshot(page):
+    page.goto('https://zimaev.github.io/table/')
+    page.screenshot(path="screenshots/screenshot.png")
+
+
+def test_get_full_screenshot(page):
+    page.goto('https://zimaev.github.io/table/')
+    page.screenshot(path="screenshots/full_page_screenshot.png", full_page=True)
+
+
+def test_get_element_screenshot(page):
+    page.goto('https://zimaev.github.io/table/')
+    page.locator("div.container").screenshot(path="screenshots/element_screenshot.png")
+
+
+def test_get_clip_screenshot(page):
+    page.goto('https://zimaev.github.io/table/')
+    page.screenshot(path="screenshots/clipped_image.png", clip={"x": 50, "y": 0, "width": 400, "height": 300})
+
+
+#Работа с несколькими вкладками(Tabs)
